@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %} Dashboard {% endblock %}
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini {% endblock body_class %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="/static/assets/plugins/fontawesome-free/css/all.min.css">
+<!-- Ionicons -->
+<link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+<!-- Tempusdominus Bootstrap 4 -->
+<link rel="stylesheet" href="/static/assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
+<!-- iCheck -->
+<link rel="stylesheet" href="/static/assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+<!-- JQVMap -->
+<link rel="stylesheet" href="/static/assets/plugins/jqvmap/jqvmap.min.css">
+<!-- Theme style -->
+<link rel="stylesheet" href="/static/assets/css/adminlte.min.css">
+<!-- overlayScrollbars -->
+<link rel="stylesheet" href="/static/assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
+<!-- Daterange picker -->
+<link rel="stylesheet" href="/static/assets/plugins/daterangepicker/daterangepicker.css">
+<!-- summernote -->
+<link rel="stylesheet" href="/static/assets/plugins/summernote/summernote-bs4.min.css">
+
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content-wrapper">
+
+  <!-- Content Header (Page header) -->
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0 text-dark">AI-vision Dashboard</h1>
+        </div><!-- /.col -->
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+
+          </ol>
+        </div><!-- /.col -->
+      </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+  </div>
+  <!-- /.content-header -->
+
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <!-- Small boxes (Stat box) -->
+      <div class="row">
+
+        <!-- ./col -->
+      </div>
+
+      <!-- /.row -->
+      <!-- Main row -->
+      <div class="row">
+        <!-- Left col -->
+        <section class="col-lg-6 connectedSortable">
+          <!-- Custom tabs (Charts with tabs)-->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-chart-pie mr-1"></i>
+                AI-Vision Control
+              </h3>
+
+              <div class="card-header"></div>
+              <div class="card-body">
+                <h1
+                  style="font-size: 24px; color: #0a0a09; margin-bottom: 0px; white-space: nowrap; text-align: center;">
+                  Live Camera Video Input
+                </h1>
+                <div class="tab-content p-0">
+                  <div class="chart tab-pane active" id="revenue-chart"
+                    style="position: relative; height: 700px; display: flex; justify-content: center; align-items: center; margin-top: -120px;padding-right: 80px;">
+                    <form class="form-signin col-lg-3" method="post" enctype="multipart/form-data" name="form1"
+                      id="uploadForm"
+                      style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 12px; text-align: center;">
+                      <video id="video" width="500" height="300" autoplay></video>
+                      <input type="file" name="file" id="inputfile" style="display: none;">
+                      <br />
+                      <div style="display: flex; gap: 20px;">
+                        <button type="button" class="btn btn-default btn-sm" id="start" style="width: 190px;">Start
+                          Camera & Record</button>
+                        <button type="button" class="btn btn-danger btn-sm" id="stop">Stop & Upload</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="manualUpload">Manually Upload Video
+                          File</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+
+
+
+
+              <script>
+                let video = document.getElementById("video");
+                let startButton = document.getElementById("start");
+                let stopButton = document.getElementById("stop");
+                let fileInput = document.getElementById("inputfile");
+                let form = document.getElementById("uploadForm");
+                let mediaRecorder;
+                let recordedChunks = [];
+                let stream;
+
+
+                document.getElementById("manualUpload").addEventListener("click", function () {
+                  document.getElementById("inputfile").click();
+                });
+
+                document.getElementById("inputfile").addEventListener("change", function () {
+                  document.getElementById("uploadForm").submit();
+                });
+
+
+                startButton.addEventListener("click", async () => {
+                  try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    video.srcObject = stream;
+
+                    recordedChunks = [];
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
+
+                    mediaRecorder.ondataavailable = event => recordedChunks.push(event.data);
+                    mediaRecorder.start();
+                  } catch (err) {
+                    console.error("Error accessing camera:", err);
+                  }
+                });
+
+                stopButton.addEventListener("click", () => {
+                  mediaRecorder.stop();
+
+                  mediaRecorder.onstop = async () => {
+                    let recordedBlob = new Blob(recordedChunks, { type: "video/webm" });
+                    let mp4File = new File([recordedBlob], "recorded_video.mp4", { type: "video/mp4" });
+
+                    let dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(mp4File);
+                    fileInput.files = dataTransfer.files;
+
+                    stream.getTracks().forEach(track => track.stop());
+
+                    setTimeout(() => form.submit(), 500);
+                  };
+                });
+              </script>
+
+
+              <!-- /.card -->
+
+
+
+        </section>
+
+
+        <section class="col-lg-6 connectedSortable">
+          <!-- Custom tabs (Charts with tabs)-->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-chart-pie mr-1"></i>
+                Results
+              </h3>
+
+
+            </div><!-- /.card-header -->
+            <div class="card-body">
+              <div class="tab-content p-0">
+                <!-- Morris chart - Sales -->
+                <div class="chart tab-pane active" id="revenue-chart" style="position: relative; height: 700px;">
+
+                  <!-- AI code-->
+
+
+
+                  <!-- detected image display -->
+                  <img id="my-image" src="{{ url_for('predict_img', filename=image_path) }}"
+                    style="height:640; width:640px; display: none;" />
+
+                  <script>
+                    document.getElementById("my-image").onload = function () {
+                      this.style.display = "block";
+                    };
+                  </script>
+
+                  <!-- detected video display using opencv-->
+                  <img id="my-video-image" src="{{ url_for('video_feed') }}"
+                    style="height:640; width:640px; display: none;" />
+
+                  <script>
+                    document.getElementById("my-video-image").onload = function () {
+                      this.style.display = "block";
+                    };
+                  </script>
+
+
+                  {% if violence_detected %}
+                  <div style="color: red; font-weight: bold; font-size: 20px; margin: 20px 0;">
+                    🚨 Violence detected! 
+                    <br>Press <b>'S'</b> on your keyboard to stop the alert sound.
+                  </div>
+
+                  <audio id="alertAudio" autoplay loop>
+                    <source src="{{ url_for('static', filename='alert.mp3') }}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                  </audio>
+
+                  <script>
+                    document.addEventListener('keydown', function (event) {
+                      if (event.key === 's' || event.key === 'S') {
+                        var audio = document.getElementById('alertAudio');
+                        audio.pause();
+                        audio.currentTime = 0;
+                      }
+                    });
+                  </script>
+                  {% endif %}
+
+
+                  <!-- AI code ends here-->
+
+                </div>
+
+              </div>
+            </div><!-- /.card-body -->
+          </div>
+          <!-- /.card -->
+
+
+
+        </section>
+
+
+
+        <!-- /.Left col -->
+        <!-- right col (We are only adding the ID to make the widgets sortable)-->
+
+        <!-- right col -->
+      </div>
+      <!-- /.row (main row) -->
+    </div><!-- /.container-fluid -->
+  </section>
+  <!-- /.content -->
+
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<!-- jQuery -->
+<script src="/static/assets/plugins/jquery/jquery.min.js"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="/static/assets/plugins/jquery-ui/jquery-ui.min.js"></script>
+<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+<script>
+  $.widget.bridge('uibutton', $.ui.button)
+</script>
+<!-- Bootstrap 4 -->
+<script src="/static/assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- ChartJS -->
+<script src="/static/assets/plugins/chart.js/Chart.min.js"></script>
+<!-- Sparkline -->
+<script src="/static/assets/plugins/sparklines/sparkline.js"></script>
+<!-- JQVMap -->
+<script src="/static/assets/plugins/jqvmap/jquery.vmap.min.js"></script>
+<script src="/static/assets/plugins/jqvmap/maps/jquery.vmap.usa.js"></script>
+<!-- jQuery Knob Chart -->
+<script src="/static/assets/plugins/jquery-knob/jquery.knob.min.js"></script>
+<!-- daterangepicker -->
+<script src="/static/assets/plugins/moment/moment.min.js"></script>
+<script src="/static/assets/plugins/daterangepicker/daterangepicker.js"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="/static/assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
+<!-- Summernote -->
+<script src="/static/assets/plugins/summernote/summernote-bs4.min.js"></script>
+<!-- overlayScrollbars -->
+<script src="/static/assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/static/assets/js/adminlte.js"></script>
+<!-- AdminLTE dashboard demo (This is only for demo purposes) -->
+<script src="/static/assets/js/pages/dashboard.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="/static/assets/js/demo.js"></script>
+
+{% endblock javascripts %}
